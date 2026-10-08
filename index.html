@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pemanah Cinta Sederhana - Untuk Istriku Tersayang ❤️</title>
+    <!-- Tailwind CSS for sleek UI styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+            overflow: hidden;
+            background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 50%, #f48fb1 100%);
+        }
+        .font-romantic {
+            font-family: 'Dancing Script', cursive;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100vh;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 32px 0 rgba(233, 30, 99, 0.2);
+        }
+        .custom-btn {
+            background: linear-gradient(135deg, #ff4081 0%, #ec407a 100%);
+            box-shadow: 0 4px 15px rgba(236, 64, 122, 0.4);
+            transition: all 0.3s ease;
+        }
+        .custom-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(236, 64, 122, 0.6);
+        }
+        .custom-btn:active {
+            transform: translateY(1px);
+        }
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(3deg); }
+        }
+        .animate-float {
+            animation: floatSlow 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="m-0 p-0 relative w-full h-screen overflow-hidden bg-pink-100">
+
+    <!-- HUD Layer -->
+    <div id="hud" class="absolute top-4 left-4 right-4 flex justify-between items-center z-10 pointer-events-none">
+        <!-- Love Score & Target Counter -->
+        <div class="glass-panel px-4 py-2 rounded-2xl flex items-center space-x-3 pointer-events-auto">
+            <span class="text-2xl">💖</span>
+            <div>
+                <p class="text-xs text-pink-600 font-bold uppercase tracking-wider">Skor Cinta</p>
+                <p id="scoreText" class="text-xl font-extrabold text-pink-700">0 / 500</p>
+            </div>
+        </div>
+
+        <!-- Special Love Power Meter -->
+        <div id="powerContainer" class="glass-panel px-4 py-2 rounded-2xl flex items-center space-x-3 pointer-events-auto opacity-80 cursor-pointer transition-all duration-300" onclick="triggerPowerUp()">
+            <span class="text-2xl animate-pulse">✨</span>
+            <div class="w-24 sm:w-32">
+                <div class="flex justify-between items-center text-xs text-pink-600 font-bold mb-1">
+                    <span>Hujan Cinta</span>
+                    <span id="powerText">0%</span>
+                </div>
+                <div class="w-full bg-pink-200 h-2.5 rounded-full overflow-hidden">
+                    <div id="powerBar" class="bg-pink-500 h-full w-0 transition-all duration-300"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Love Note Popup -->
+    <div id="loveToast" class="fixed top-20 left-1/2 transform -translate-x-1/2 z-20 pointer-events-none opacity-0 transition-all duration-500 transform translate-y-[-20px] w-11/12 max-w-md">
+        <div class="glass-panel border-2 border-pink-300 rounded-2xl p-4 text-center shadow-2xl relative">
+            <div class="text-2xl mb-1">💌</div>
+            <p id="toastMessage" class="text-pink-800 font-bold text-lg font-romantic tracking-wide"></p>
+        </div>
+    </div>
+
+    <!-- Start Game Modal -->
+    <div id="startModal" class="fixed inset-0 z-30 flex items-center justify-center p-4 bg-pink-900/40 backdrop-blur-md">
+        <div class="glass-panel rounded-3xl p-6 sm:p-8 max-w-md w-full text-center shadow-2xl animate-float">
+            <div class="text-6xl mb-3">🏹💕</div>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-pink-700 font-romantic mb-2">Panahan Cinta Istriku</h1>
+            <p class="text-pink-600 font-semibold mb-6 text-sm sm:text-base">
+                Kutembakkan panah-panah cinta ini khusus untuk memenangkan hatimu! Kumpulkan 500 Skor agar pesan rahasiaku muncul.
+            </p>
+            <div class="bg-pink-50/80 rounded-2xl p-4 mb-6 text-left text-xs sm:text-sm text-pink-700 space-y-2">
+                <p>✨ <strong>Cara Bermain:</strong></p>
+                <p>• <strong>Komputer:</strong> Geser mouse untuk membidik, Klik / Spacebar untuk menembak.</p>
+                <p>• <strong>HP/Tablet:</strong> Sentuh layar di mana saja untuk membidik dan menembak!</p>
+                <p>• Tembak simbol cinta, bunga, cincin, dan boneka untuk poin!</p>
+            </div>
+            <button onclick="startGame()" class="custom-btn text-white font-bold py-3.5 px-8 rounded-full text-lg w-full">
+                Mulai Bermain Adinda ❤️
+            </button>
+        </div>
+    </div>
+
+    <!-- Victory Game Modal -->
+    <div id="victoryModal" class="fixed inset-0 z-30 flex items-center justify-center p-4 bg-pink-900/60 backdrop-blur-md hidden">
+        <div class="glass-panel rounded-3xl p-6 sm:p-8 max-w-lg w-full text-center shadow-2xl relative overflow-hidden">
+            <div class="absolute -top-10 -left-10 text-7xl opacity-20">💖</div>
+            <div class="absolute -bottom-10 -right-10 text-7xl opacity-20">👑</div>
+
+            <div class="text-6xl mb-2 animate-bounce">👑💖💐</div>
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-pink-700 font-romantic mb-2">Kamu Memenangkan Hatiku!</h2>
+            
+            <div class="my-4 p-4 bg-white/90 border-2 border-pink-300 rounded-2xl text-pink-800 text-sm sm:text-base leading-relaxed font-semibold shadow-inner">
+                <p class="font-romantic text-2xl text-pink-600 mb-2">Untuk Istriku Tersayang,</p>
+                <p id="finalLoveMessage">
+                    "Maafkan aku Adinda, Hari ini jarang ada waktu untuk kamu bahkan hanya untuk sekedar berbalas pesan. Tapi asal kamu tahu, bahkan disaat sibukku ingin segera ku selesaikan agar aku bisa menghubungi dirimu Istriku. Aku MerindukanMu ❤️"
+                </p>
+            </div>
+
+            <div class="flex space-x-3 mt-6">
+                <button onclick="restartGame()" class="custom-btn text-white font-bold py-3 px-6 rounded-full text-base w-full">
+                    Main Lagi 🔄
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Canvas Element for Game -->
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        /* Modern Web Audio API Synth to create sound effects without external file dependencies */
+        class SoundFX {
+            constructor() {
+                this.ctx = null;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+
+            playShoot() {
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(800, this.ctx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.15);
+            }
+
+            playHit() {
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, this.ctx.currentTime); // C5
+                osc.frequency.setValueAtTime(659.25, this.ctx.currentTime + 0.08); // E5
+                osc.frequency.setValueAtTime(783.99, this.ctx.currentTime + 0.16); // G5
+                gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.3);
+            }
+
+            playPowerUp() {
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.exponentialRampToValueAtTime(1200, now + 0.4);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(now + 0.4);
+            }
+
+            playWin() {
+                if (!this.ctx) return;
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                notes.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.12);
+                    gain.gain.setValueAtTime(0.2, this.ctx.currentTime + idx * 0.12);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + idx * 0.12 + 0.4);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(this.ctx.currentTime + idx * 0.12);
+                    osc.stop(this.ctx.currentTime + idx * 0.12 + 0.4);
+                });
+            }
+        }
+
+        const sound = new SoundFX();
+
+        // Canvas & Setup
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Game Variables
+        let score = 0;
+        const targetScore = 500;
+        let powerCharge = 0;
+        let isGameRunning = false;
+        let lastTime = 0;
+        let spawnTimer = 0;
+
+        // Interactive entities
+        let arrows = [];
+        let targets = [];
+        let particles = [];
+        let floatingBackgroundHearts = [];
+
+        // Cupid Shooter Position
+        const shooter = {
+            x: canvas.width / 2,
+            y: canvas.height - 70,
+            angle: -Math.PI / 2,
+            radius: 35
+        };
+
+        // Target Types & Icons
+        const targetTypes = [
+            { icon: '💖', points: 10, radius: 24, speed: 1.5, weight: 40 },
+            { icon: '🌹', points: 15, radius: 24, speed: 2.0, weight: 25 },
+            { icon: '💌', points: 20, radius: 24, speed: 1.8, weight: 15 },
+            { icon: '🧸', points: 25, radius: 28, speed: 1.2, weight: 10 },
+            { icon: '💍', points: 40, radius: 22, speed: 2.5, weight: 10 }
+        ];
+
+        // Romantic Messages Milestones
+        const loveMessages = [
+            "Kamu adalah Dunia ku 💕",
+            "Mencintaimu merupakan hobby ku semenjak akad terucap ✨",
+            "Terima kasih sudah selalu ada & menemaniku 🌹",
+            "Kamu adalah rumah terfavorit untuk hatiku 🏠❤️",
+            "Senyummu meluruhkan semua masalahku 😊💖",
+            "Aku tidak ingin bilang aku mencintaimu. Tapi mengucapkan namamu disetiap kesempatan  🥰",
+            "Bersamamu, Membuat Aku bersyukur setiap saat 🌙✨"
+        ];
+        let lastMessageScore = 0;
+
+        // Initialize Background Hearts
+        for (let i = 0; i < 25; i++) {
+            floatingBackgroundHearts.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 16 + 8,
+                speedY: Math.random() * 0.5 + 0.2,
+                alpha: Math.random() * 0.4 + 0.1,
+                floatOffset: Math.random() * Math.PI * 2
+            });
+        }
+
+        // Input Handling
+        function updateShooterAngle(clientX, clientY) {
+            const dx = clientX - shooter.x;
+            const dy = clientY - shooter.y;
+            shooter.angle = Math.atan2(dy, dx);
+            // Limit angle to avoid shooting downward
+            if (shooter.angle > -Math.PI * 0.05) shooter.angle = -Math.PI * 0.05;
+            if (shooter.angle < -Math.PI * 0.95) shooter.angle = -Math.PI * 0.95;
+        }
+
+        function shootArrow() {
+            if (!isGameRunning) return;
+            sound.init();
+            sound.playShoot();
+
+            const speed = 14;
+            arrows.push({
+                x: shooter.x + Math.cos(shooter.angle) * shooter.radius,
+                y: shooter.y + Math.sin(shooter.angle) * shooter.radius,
+                vx: Math.cos(shooter.angle) * speed,
+                vy: Math.sin(shooter.angle) * speed,
+                angle: shooter.angle,
+                radius: 6
+            });
+        }
+
+        // Mouse listeners
+        window.addEventListener('mousemove', (e) => {
+            shooter.x = canvas.width / 2;
+            shooter.y = canvas.height - 70;
+            updateShooterAngle(e.clientX, e.clientY);
+        });
+
+        window.addEventListener('click', (e) => {
+            // Ignore click on UI buttons
+            if (e.target.closest('#hud') || e.target.closest('#startModal') || e.target.closest('#victoryModal')) return;
+            shootArrow();
+        });
+
+        // Touch support for mobile devices
+        window.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 0) {
+                updateShooterAngle(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        }, { passive: true });
+
+        window.addEventListener('touchstart', (e) => {
+            if (e.target.closest('#hud') || e.target.closest('#startModal') || e.target.closest('#victoryModal')) return;
+            if (e.touches.length > 0) {
+                updateShooterAngle(e.touches[0].clientX, e.touches[0].clientY);
+                shootArrow();
+            }
+        }, { passive: true });
+
+        // Keyboard Spacebar listener
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                shootArrow();
+            }
+        });
+
+        // Target Spawner
+        function spawnTarget() {
+            // Weighted Random Choice
+            const totalWeight = targetTypes.reduce((sum, t) => sum + t.weight, 0);
+            let rnd = Math.random() * totalWeight;
+            let selectedType = targetTypes[0];
+
+            for (let type of targetTypes) {
+                if (rnd < type.weight) {
+                    selectedType = type;
+                    break;
+                }
+                rnd -= type.weight;
+            }
+
+            const margin = 60;
+            const x = margin + Math.random() * (canvas.width - margin * 2);
+            const y = -30;
+            const horizontalDrift = (Math.random() - 0.5) * 1.2;
+
+            targets.push({
+                ...selectedType,
+                x: x,
+                y: y,
+                vx: horizontalDrift,
+                vy: selectedType.speed,
+                rotation: 0,
+                rotSpeed: (Math.random() - 0.5) * 0.03
+            });
+        }
+
+        // Particle Bursts Generator
+        function createExplosion(x, y, color = '#ff4081') {
+            for (let i = 0; i < 18; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 5 + 2;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    size: Math.random() * 6 + 4,
+                    color: i % 2 === 0 ? color : '#fff',
+                    alpha: 1,
+                    life: Math.random() * 20 + 25
+                });
+            }
+        }
+
+        // Trigger Power-Up: Shower of Hearts
+        function triggerPowerUp() {
+            if (powerCharge < 100 || !isGameRunning) return;
+            powerCharge = 0;
+            updatePowerBar();
+
+            sound.playPowerUp();
+            showToast("✨ HUJAN CINTA! Panah Cinta Otomatis Meluncur! ✨");
+
+            // Shoot arrows in 12 directions
+            for (let i = 0; i < 12; i++) {
+                const angle = -Math.PI + (i * Math.PI / 11);
+                const speed = 12;
+                arrows.push({
+                    x: shooter.x,
+                    y: shooter.y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    angle: angle,
+                    radius: 6
+                });
+            }
+        }
+
+        function updatePowerBar() {
+            document.getElementById('powerBar').style.width = `${powerCharge}%`;
+            document.getElementById('powerText').innerText = `${Math.floor(powerCharge)}%`;
+            const container = document.getElementById('powerContainer');
+            if (powerCharge >= 100) {
+                container.classList.add('ring-4', 'ring-pink-400', 'scale-105', 'opacity-100');
+            } else {
+                container.classList.remove('ring-4', 'ring-pink-400', 'scale-105', 'opacity-100');
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('loveToast');
+            const toastMsg = document.getElementById('toastMessage');
+            toastMsg.innerText = msg;
+            toast.classList.remove('opacity-0', 'translate-y-[-20px]');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-[-20px]');
+            }, 3500);
+        }
+
+        // Game Render & Animation Loop
+        function update(delta) {
+            if (!isGameRunning) return;
+
+            // Spawn targets
+            spawnTimer += delta;
+            if (spawnTimer > 1000) {
+                spawnTarget();
+                spawnTimer = 0;
+            }
+
+            // Update Arrows
+            for (let i = arrows.length - 1; i >= 0; i--) {
+                let a = arrows[i];
+                a.x += a.vx;
+                a.y += a.vy;
+
+                // Remove offscreen
+                if (a.x < 0 || a.x > canvas.width || a.y < 0 || a.y > canvas.height) {
+                    arrows.splice(i, 1);
+                }
+            }
+
+            // Update Targets
+            for (let i = targets.length - 1; i >= 0; i--) {
+                let t = targets[i];
+                t.x += t.vx;
+                t.y += t.vy;
+                t.rotation += t.rotSpeed;
+
+                // Bounce horizontally on edges
+                if (t.x - t.radius < 0 || t.x + t.radius > canvas.width) {
+                    t.vx *= -1;
+                }
+
+                // Remove offscreen bottom
+                if (t.y > canvas.height + 50) {
+                    targets.splice(i, 1);
+                    continue;
+                }
+
+                // Check collision with Arrows
+                for (let j = arrows.length - 1; j >= 0; j--) {
+                    let a = arrows[j];
+                    const dist = Math.hypot(a.x - t.x, a.y - t.y);
+
+                    if (dist < a.radius + t.radius) {
+                        // Hit detected
+                        sound.playHit();
+                        createExplosion(t.x, t.y);
+
+                        score += t.points;
+                        document.getElementById('scoreText').innerText = `${score} / ${targetScore}`;
+
+                        // Increase Power-up Charge
+                        powerCharge = Math.min(100, powerCharge + 12);
+                        updatePowerBar();
+
+                        // Love Message Toast Trigger every ~60 points
+                        if (score - lastMessageScore >= 60) {
+                            lastMessageScore = score;
+                            const randomMsg = loveMessages[Math.floor(Math.random() * loveMessages.length)];
+                            showToast(randomMsg);
+                        }
+
+                        // Check Victory Condition
+                        if (score >= targetScore) {
+                            winGame();
+                        }
+
+                        targets.splice(i, 1);
+                        arrows.splice(j, 1);
+                        break;
+                    }
+                }
+            }
+
+            // Update Particle Bursts
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.alpha -= 0.02;
+                if (p.alpha <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        function draw() {
+            // Clear Canvas with Soft Pink Gradient
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Floating Background Hearts
+            floatingBackgroundHearts.forEach(h => {
+                h.y -= h.speedY;
+                if (h.y < -20) h.y = canvas.height + 20;
+
+                ctx.save();
+                ctx.globalAlpha = h.alpha;
+                ctx.font = `${h.size}px sans-serif`;
+                ctx.fillText('💖', h.x + Math.sin(h.y * 0.02 + h.floatOffset) * 15, h.y);
+                ctx.restore();
+            });
+
+            // Draw Cupidon Shooter at Bottom
+            ctx.save();
+            ctx.translate(shooter.x, shooter.y);
+
+            // Glowing Outer Ring for Bow
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = 'rgba(233, 30, 99, 0.5)';
+            ctx.fillStyle = '#ff80ab';
+            ctx.beginPath();
+            ctx.arc(0, 0, shooter.radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Heart Core
+            ctx.font = '36px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🏹', 0, 0);
+
+            // Aim Line Direction
+            ctx.rotate(shooter.angle);
+            ctx.strokeStyle = 'rgba(255, 64, 129, 0.4)';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([6, 6]);
+            ctx.beginPath();
+            ctx.moveTo(shooter.radius, 0);
+            ctx.lineTo(shooter.radius + 60, 0);
+            ctx.stroke();
+
+            ctx.restore();
+
+            // Draw Arrows
+            arrows.forEach(a => {
+                ctx.save();
+                ctx.translate(a.x, a.y);
+                ctx.rotate(a.angle);
+                ctx.font = '22px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('💘', 0, 0);
+                ctx.restore();
+            });
+
+            // Draw Floating Targets
+            targets.forEach(t => {
+                ctx.save();
+                ctx.translate(t.x, t.y);
+                ctx.rotate(t.rotation);
+                ctx.font = `${t.radius * 1.8}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(t.icon, 0, 0);
+                ctx.restore();
+            });
+
+            // Draw Particle Explosions
+            particles.forEach(p => {
+                ctx.save();
+                ctx.globalAlpha = p.alpha;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+        }
+
+        function gameLoop(timestamp) {
+            const delta = timestamp - lastTime;
+            lastTime = timestamp;
+
+            update(delta || 0);
+            draw();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function startGame() {
+            sound.init();
+            document.getElementById('startModal').classList.add('hidden');
+            score = 0;
+            powerCharge = 0;
+            lastMessageScore = 0;
+            arrows = [];
+            targets = [];
+            particles = [];
+            document.getElementById('scoreText').innerText = `0 / ${targetScore}`;
+            updatePowerBar();
+            isGameRunning = true;
+            showToast("Selamat bermain, Sayang! Tembak semua simbol cinta! ❤️");
+        }
+
+        function winGame() {
+            isGameRunning = false;
+            sound.playWin();
+            document.getElementById('victoryModal').classList.remove('hidden');
+        }
+
+        function restartGame() {
+            document.getElementById('victoryModal').classList.add('hidden');
+            startGame();
+        }
+
+        // Start Canvas Render Loop on Window Load
+        window.onload = function() {
+            lastTime = performance.now();
+            requestAnimationFrame(gameLoop);
+        };
+    </script>
+</body>
+</html>
